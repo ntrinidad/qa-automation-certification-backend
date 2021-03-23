@@ -1,0 +1,557 @@
+{
+	"info": {
+		"_postman_id": "62b3d4fa-f19c-4352-a7c3-1f4cf7896544",
+		"name": "todoist",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "tasks",
+			"item": [
+				{
+					"name": "create",
+					"item": [
+						{
+							"name": "create a new task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const schema = JSON.parse(pm.collectionVariables.get(\"taskSchema\"));",
+											"",
+											"pm.test(\"Validate schema\", () => {",
+											"    pm.response.to.have.jsonSchema(schema);",
+											"});",
+											"",
+											"const jsonData = pm.response.json();",
+											"pm.environment.set(\"taskId\", jsonData.id);",
+											"",
+											"const baseURL = pm.environment.get(\"baseURL\");",
+											"const token = pm.environment.get(\"token\");",
+											"pm.sendRequest({",
+											"    url: baseURL,",
+											"    method: 'POST',",
+											"    header: {",
+											"        'content-type': 'application/json',",
+											"        'X-Requested-Id': '$(uuidgen)',",
+											"        'Authorization': `Bearer ${token}`",
+											"    },",
+											"    body: {",
+											"        mode: 'raw',",
+											"        raw: JSON.stringify({})",
+											"    }",
+											"}, function (err, response) {",
+											"    pm.test(\"Try to create task with empty content\", () => {",
+											"        pm.expect(response).to.be.badRequest;",
+											"    });",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "X-Requested-Id",
+										"value": "$(uuidgen)",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"content\": \"{{taskContent}}\",\n    \"project_id\": {{projectId}}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}",
+									"host": [
+										"{{baseURL}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "create new tasks from file",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const schema = JSON.parse(pm.collectionVariables.get(\"taskSchema\"));",
+											"",
+											"pm.test(\"Validate schema\", () => {",
+											"    pm.response.to.have.jsonSchema(schema);",
+											"});",
+											"",
+											"const content = pm.variables.get(\"content\");",
+											"const priority = pm.variables.get(\"priority\");",
+											"",
+											"pm.test(\"Compare attributes\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.content).to.eql(content);",
+											"    pm.expect(jsonData.priority).to.eql(priority);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "X-Requested-Id",
+										"value": "$(uuidgen)",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"content\": \"{{content}}\",\n    \"priority\": {{priority}},\n    \"project_id\": {{projectId}}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}",
+									"host": [
+										"{{baseURL}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "get",
+					"item": [
+						{
+							"name": "get active tasks",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const taskSchema = JSON.parse(pm.collectionVariables.get(\"taskSchema\"));",
+											"",
+											"const schema = {",
+											"    type: \"array\",",
+											"    items: {",
+											"        anyOf: [taskSchema]",
+											"    }",
+											"};",
+											"",
+											"pm.test(\"Validate schema\", () => {",
+											"    pm.response.to.have.jsonSchema(schema);",
+											"});",
+											"",
+											"",
+											"const baseURL = pm.environment.get(\"baseURL\");",
+											"const token = pm.environment.get(\"token\");",
+											"pm.sendRequest({",
+											"    url: `${baseURL}?project_id=ancnd`,",
+											"    method: 'GET',",
+											"    header: {",
+											"        'Authorization': `Bearer ${token}`",
+											"    }",
+											"}, function (err, response) {",
+											"    pm.test(\"Try to get active tasks with invalid id project\", () => {",
+											"        pm.expect(response).to.be.badRequest;",
+											"    });",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}?project_id={{projectId}}",
+									"host": [
+										"{{baseURL}}"
+									],
+									"query": [
+										{
+											"key": "project_id",
+											"value": "{{projectId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get an active task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const schema = JSON.parse(pm.collectionVariables.get(\"taskSchema\"));",
+											"",
+											"pm.test(\"Validate schema\", () => {",
+											"    pm.response.to.have.jsonSchema(schema);",
+											"});",
+											"",
+											"",
+											"const taskId = pm.environment.get(\"taskId\");",
+											"",
+											"pm.test(\"Validate returned object is correct\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.id).to.eql(taskId);",
+											"});",
+											"",
+											"",
+											"const baseURL = pm.environment.get(\"baseURL\");",
+											"const token = pm.environment.get(\"token\");",
+											"pm.sendRequest({",
+											"    url: `${baseURL}/2995104339`,",
+											"    method: 'GET',",
+											"    header : {",
+											"        'Authorization': `Bearer ${token}`",
+											"    }",
+											"}, function (err, response) {",
+											"    pm.test(\"Try to get an unexisting active task\", () => {",
+											"        pm.expect(response).to.be.notFound;",
+											"    });",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/{{taskId}}",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"{{taskId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "update",
+					"item": [
+						{
+							"name": "update a task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"No content body is correct\", function () {",
+											"    const emptyBody = (_.isEmpty(pm.response.body));",
+											"    pm.expect(emptyBody).to.be.true;",
+											"});",
+											"",
+											"const baseURL = pm.environment.get(\"baseURL\");",
+											"const token = pm.environment.get(\"token\");",
+											"pm.sendRequest({",
+											"    url: `${baseURL}/2995104339`,",
+											"    method: 'POST',",
+											"    header: {",
+											"        'content-type': 'application/json',",
+											"        'X-Requested-Id': '$(uuidgen)',",
+											"        'Authorization': `Bearer ${token}`",
+											"    },",
+											"    body: {",
+											"        mode: 'raw',",
+											"        raw: JSON.stringify({'content': 'My new task'})",
+											"    }",
+											"}, function (err, response) {",
+											"    pm.test(\"Try to update an unexisting task\", () => {",
+											"        pm.expect(response).to.be.badRequest;",
+											"    });",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "X-Requested-Id",
+										"value": "$(uuidgen)",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"content\": \"{{taskNewContent}}\",\n    \"priority\": {{taskPriority}}\n}"
+								},
+								"url": {
+									"raw": "{{baseURL}}/{{taskId}}",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"{{taskId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "close",
+					"item": [
+						{
+							"name": "close a task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"No content body is correct\", function () {",
+											"    const emptyBody = (_.isEmpty(pm.response.body));",
+											"    pm.expect(emptyBody).to.be.true;",
+											"});",
+											"",
+											"const baseURL = pm.environment.get(\"baseURL\");",
+											"const token = pm.environment.get(\"token\");",
+											"pm.sendRequest({",
+											"    url: `${baseURL}/abcde/close`,",
+											"    method: 'POST',",
+											"    header: {",
+											"        'Authorization': `Bearer ${token}`",
+											"    }",
+											"}, function (err, response) {",
+											"    pm.test(\"Try to close an unexisting task\", () => {",
+											"        pm.expect(response).to.be.notFound;",
+											"    });",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/{{taskId}}/close",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"{{taskId}}",
+										"close"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "reopen",
+					"item": [
+						{
+							"name": "reopen a task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"No content body is correct\", function () {",
+											"    const emptyBody = (_.isEmpty(pm.response.body));",
+											"    pm.expect(emptyBody).to.be.true;",
+											"});",
+											"",
+											"",
+											"const baseURL = pm.environment.get(\"baseURL\");",
+											"const token = pm.environment.get(\"token\");",
+											"pm.sendRequest({",
+											"    url: `${baseURL}/abcde/reopen`,",
+											"    method: 'POST',",
+											"    header: {",
+											"        'Authorization': `Bearer ${token}`",
+											"    }",
+											"}, function (err, response) {",
+											"    pm.test(\"Try to reopen an unexisting task\", () => {",
+											"        pm.expect(response).to.be.notFound;",
+											"    });",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/{{taskId}}/reopen",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"{{taskId}}",
+										"reopen"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "delete",
+					"item": [
+						{
+							"name": "delete a task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response is No content\", function () {",
+											"    pm.expect(pm.response.text()).to.be.empty",
+											"});",
+											"",
+											"pm.test(\"No content body is correct\", function () {",
+											"    const emptyBody = (_.isEmpty(pm.response.body));",
+											"    pm.expect(emptyBody).to.be.true;",
+											"});",
+											"",
+											"const baseURL = pm.environment.get(\"baseURL\");",
+											"const token = pm.environment.get(\"token\");",
+											"pm.sendRequest({",
+											"    url: `${baseURL}/4682186049`,",
+											"    method: 'DELETE',",
+											"    header: {",
+											"        'Authorization': `Bearer ${token}`",
+											"    },",
+											"}, function (err, response) {",
+											"    pm.test(\"Try to delete an unexisting task\", () => {",
+											"        pm.expect(response).to.be.badRequest;",
+											"    });",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/{{taskId}}",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"{{taskId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 2xx\", function () {",
+							"    pm.response.to.be.success;",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 800ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(800);",
+							"});",
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "taskSchema",
+			"value": "{\n    \"type\": \"object\",\n    \"required\": [\n        \"id\",\n        \"content\"\n    ],\n    \"properties\": {\n        \"id\": {\n            \"type\": \"integer\"\n        },\n        \"assigner\": {\n            \"type\": \"integer\"\n        },\n        \"project_id\": {\n            \"type\": \"integer\"\n        },\n        \"section_id\": {\n            \"type\": \"integer\"\n        },\n        \"order\": {\n            \"type\": \"integer\"\n        },\n        \"content\": {\n            \"type\": \"string\"\n        },\n        \"completed\": {\n            \"type\": \"boolean\"\n        },\n        \"label_ids\": {\n            \"type\": \"array\"\n        },\n        \"priority\": {\n            \"type\": \"integer\"\n        },\n        \"comment_count\": {\n            \"type\": \"integer\"\n        },\n        \"creator\": {\n            \"type\": \"integer\"\n        },\n        \"created\": {\n            \"type\": \"string\"\n        },\n        \"url\": {\n            \"type\": \"string\"\n        }\n    }\n}"
+		}
+	]
+}
